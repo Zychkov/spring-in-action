@@ -5,5 +5,4 @@ import ru.zychkov.tacocloud.TacoOrder;
 
 public interface OrderRepository extends CrudRepository<TacoOrder, Long> {
 
-    TacoOrder save(TacoOrder order);
 }
