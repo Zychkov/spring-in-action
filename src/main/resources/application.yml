@@ -1,8 +1,8 @@
 spring:
   data:
-    cassandra:
-      keyspace-name: taco_cloud
-      schema-action: recreate
-      local-datacenter: datacenter1
-  thymeleaf:
-    cache: false
+    mongodb:
+      host: localhost
+      port: 27017
+      database: tacoclouddb
+thymeleaf:
+  cache: false
