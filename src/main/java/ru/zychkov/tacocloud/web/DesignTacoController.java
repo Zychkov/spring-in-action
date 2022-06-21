@@ -14,9 +14,11 @@ import ru.zychkov.tacocloud.Ingredient;
 import ru.zychkov.tacocloud.Ingredient.Type;
 import ru.zychkov.tacocloud.Taco;
 import ru.zychkov.tacocloud.TacoOrder;
+import ru.zychkov.tacocloud.TacoUDT;
 import ru.zychkov.tacocloud.data.IngredientRepository;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +40,9 @@ public class DesignTacoController {
 
     @ModelAttribute
     public void addIngredientsToModel(Model model) {
-        Iterable<Ingredient> ingredients = ingredientRepo.findAll();
+        List<Ingredient> ingredients = new ArrayList<>();
+        ingredientRepo.findAll().forEach(ingredients::add);
+
         Type[] types = Ingredient.Type.values();
         for (Type type : types) {
             model.addAttribute(type.toString().toLowerCase(),
@@ -67,7 +71,7 @@ public class DesignTacoController {
             return "design";
         }
 
-        tacoOrder.addTaco(taco);
+        tacoOrder.addTaco(new TacoUDT(taco.getName(), taco.getIngredients()));
         log.info("Processing taco: {}", taco);
 
         return "redirect:/orders/current";
