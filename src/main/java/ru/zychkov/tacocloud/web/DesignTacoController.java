@@ -14,10 +14,14 @@ import ru.zychkov.tacocloud.Ingredient;
 import ru.zychkov.tacocloud.Ingredient.Type;
 import ru.zychkov.tacocloud.Taco;
 import ru.zychkov.tacocloud.TacoOrder;
+import ru.zychkov.tacocloud.User;
 import ru.zychkov.tacocloud.data.IngredientRepository;
+import ru.zychkov.tacocloud.data.TacoRepository;
+import ru.zychkov.tacocloud.data.UserRepository;
 
 import javax.validation.Valid;
-import java.util.Arrays;
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -30,15 +34,25 @@ public class DesignTacoController {
 
     private final IngredientRepository ingredientRepo;
 
+    private TacoRepository tacoRepo;
+
+    private UserRepository userRepo;
+
     @Autowired
     public DesignTacoController(
-            IngredientRepository ingredientRepo) {
+            IngredientRepository ingredientRepo,
+            TacoRepository tacoRepo,
+            UserRepository userRepo) {
         this.ingredientRepo = ingredientRepo;
+        this.tacoRepo = tacoRepo;
+        this.userRepo = userRepo;
     }
 
     @ModelAttribute
     public void addIngredientsToModel(Model model) {
-        Iterable<Ingredient> ingredients = ingredientRepo.findAll();
+        List<Ingredient> ingredients = new ArrayList<>();
+        ingredientRepo.findAll().forEach(ingredients::add);
+
         Type[] types = Ingredient.Type.values();
         for (Type type : types) {
             model.addAttribute(type.toString().toLowerCase(),
@@ -56,19 +70,26 @@ public class DesignTacoController {
         return new Taco();
     }
 
+    @ModelAttribute(name = "user")
+    public User user(Principal principal) {
+        String username = principal.getName();
+        User user = userRepo.findByUsername(username);
+        return user;
+    }
+
     @GetMapping
     public String showDesignForm() {
         return "design";
     }
 
     @PostMapping
-    public String processTaco(@Valid Taco taco, Errors errors, @ModelAttribute TacoOrder tacoOrder) {
+    public String processTaco(@Valid Taco taco, Errors errors, @ModelAttribute TacoOrder order) {
         if (errors.hasErrors()) {
             return "design";
         }
 
-        tacoOrder.addTaco(taco);
-        log.info("Processing taco: {}", taco);
+        Taco saved = tacoRepo.save(taco);
+        order.addTaco(saved);
 
         return "redirect:/orders/current";
     }
